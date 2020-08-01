@@ -406,7 +406,10 @@ void  ICACHE_RAM_ATTR interruptHandler() {
       if (data4 == 1) {
            watt = (3600000.0f / float(PULSES_PER_KWH) * 1024.0f) / float(power);
       } else if (data4 == 0) { // special mode for low power usage
-           watt = power * 0.24f / float(PULSES_PER_KWH);
+          // Constants C_a & C_b acquired from matlab linefit for exponential model: y=a*x^b from emperical valuesS
+          const float C_a = 233034430.006965;
+          const float C_b = -1.001537975308634;
+          watt = C_a * pow(power, C_b) / float(PULSES_PER_KWH);
       }
       /* m += sprintf(m, "%5d: %7.1f W. %d.%.3d kWh. Batt %d%%. FreqErr: %.2f", seq, watt, pulse/PULSES_PER_KWH, pulse%PULSES_PER_KWH, battery, freq);
       'So in the example 10 % 3, 10 divided by 3 is 3 with remainder 1, so the answer is 1.'
@@ -426,6 +429,7 @@ void  ICACHE_RAM_ATTR interruptHandler() {
       output += String(battery) + "%, rssi ";
       output += String(srssi) + "dBm. Power(raw): ";
       output += String(power) + " ";
+      // output += ", data4 = " + String(data4) + ", ";
       output += (crc == packet_crc ? "" : "CRC ERR");
       String err = (crc == packet_crc ? "" : "CRC ERR");
 
